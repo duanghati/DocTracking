@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
-import { Layout, Menu, Breadcrumb, Icon, Descriptions, Form, Button, Col, Row, Input, Select, DatePicker, Modal } from 'antd';
-import Mytable from './Mytable';
+import { Layout, Menu, Breadcrumb, Icon, Form,Col, Row, Input, Select, DatePicker, Modal } from 'antd';
+import Tableaddpage from './Tableaddpage';
+import moment from 'moment';
+import Axios from '../config/axios.setup'
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
 const { Option } = Select;
@@ -8,7 +10,12 @@ const { Option } = Select;
 class Addpage extends Component {
     state = {
         collapsed: false,
-        visible: false
+        visible: false,
+        create_date: new Date(),
+        title:"",
+        work_section:"",
+        detail:"",
+        status:"wait",
     };
 
     showModal = () => {
@@ -17,23 +24,66 @@ class Addpage extends Component {
         });
     };
 
-    handleOk = e => {
+
+    handleTextArea = (e) => {
+        console.log(e.target.value)
+        this.setState({
+            title: e.target.value
+        })
+    } 
+
+    handleSelect = value => {
+        console.log(value)
+        this.setState({
+            work_section: value
+        })
+    }
+
+    handleTextdetail = e =>{
+        console.log(e.target.value)
+        this.setState({
+            detail:e.target.value
+        })
+    }
+
+    handleOk =()=>{
+    Axios.post('/CreateNewJob', {
+        create_date:this.state.create_date,
+        title:this.state.title,
+        work_section:this.state.work_section,
+        detail:this.state.detail,
+        status:this.state.status
+        
+    })
+    .then(result =>{
+        console.log("Add data success" ,result.data)
         this.setState({
             visible: false,
-        });
-    };
-
+          });
+        
+    })
+    .catch(err=>{
+        console.log(err)
+})
+    }
     handleCancel = e => {
         console.log(e);
         this.setState({
             visible: false,
         });
     };
+    handdleClick = ()=>{
+        this.props.history.push('/home')
+    }
+    clickShow =()=>{
+
+    }
+  
     render() {
+        const dateFormatList = ['DD/MM/YYYY', 'DD/MM/YY'];
         const { getFieldDecorator } = this.props.form;
         return (
             <Layout style={{ minHeight: '100vh' }}>
-
                 <Modal
                     title="เพิ่มเอกสาร"
                     width={720}
@@ -41,49 +91,39 @@ class Addpage extends Component {
                     onOk={this.handleOk}
                     onCancel={this.handleCancel}
                     bodyStyle={{ paddingBottom: 80 }}
+                    
                 >
                     <Form layout="vertical" hideRequiredMark>
                         <Row gutter={16}>
-                            <Col span={12}>
+                            {/* <Col span={12}>
                                 <Form.Item label="เลขที่เอกสาร">
                                  
                                 </Form.Item>
-                            </Col>
+                            </Col> */}
+                           
                             <Col span={12}>
-                                <Form.Item label="วันที่">
-                                    {getFieldDecorator('dateTime', {
-                                        rules: [{ required: true, message: 'Please choose the dateTime' }],
-                                    })(
-                                        <DatePicker.RangePicker
-                                            style={{ width: '100%' }}
-                                            getPopupContainer={trigger => trigger.parentNode}
-                                        />,
-                                    )}
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item label="เรื่อง">
-                                    {getFieldDecorator('owner', {
-                                        rules: [{ required: true, message: 'กรุณาใส่ชื่อเรื่อง' }],
-                                    })(
-                                        <Select placeholder="Please select an owner">
-                                            <Option value="xiao">Xiaoxiao Fu</Option>
-                                            <Option value="mao">Maomao Zhou</Option>
-                                        </Select>,
-                                    )}
+                            <Form.Item label="เรื่อง">
+                                    {getFieldDecorator('title', {
+                                        rules: [
+                                            {
+                                                required: true,
+                                                message: 'กรุณาใส่ชื่อเรื่อง',
+                                            },
+                                        ],
+                                    })(<Input.TextArea placeholder="กรุณาใส่ชื่อเรื่อง" onChange={this.handleTextArea} />)}
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
                                 <Form.Item label="เลือกส่วนงานที่รับ">
-                                    {getFieldDecorator('url', {
+                                    {getFieldDecorator('work_section', {
                                         rules: [{ required: true, message: 'กรุณาเลือกส่วนงานที่รับ' }],
                                     })(
-                                        <Input
-                                            style={{ width: '100%' }}
-                                           
-        
-                                            placeholder="กรุณาเลือกส่วนงานที่รับ"
-                                        />,
+                                        <Select placeholder="Please select an owner" onSelect={this.handleSelect}>
+                                        <Option value="ฝทน.">ฝทน.</Option>
+                                        <Option value="ฝกธ.">ฝกธ.</Option>
+                                        <Option value="ฝกง.">ฝกง.</Option>
+                                        <Option value="ฝกม.">ฝกม.</Option>
+                                    </Select>,      
                                     )}
                                 </Form.Item>
                             </Col>
@@ -91,14 +131,14 @@ class Addpage extends Component {
                         <Row gutter={16}>
                             <Col span={24}>
                                 <Form.Item label="รายละเอียด">
-                                    {getFieldDecorator('description', {
+                                    {getFieldDecorator('detail', {
                                         rules: [
                                             {
                                                 required: true,
                                                 message: 'กรุณาใส่รายละเอียด',
                                             },
                                         ],
-                                    })(<Input.TextArea rows={4} placeholder="กรุณาใส่รายละเอียด" />)}
+                                    })(<Input.TextArea rows={4} placeholder="กรุณาใส่รายละเอียด" onChange={this.handleTextdetail} />)}
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -117,7 +157,6 @@ class Addpage extends Component {
                     >
                     </div>
                 </Modal>
-
                 <Sider style={{ backgroundColor: "gainsboro" }} collapsible collapsed={this.state.collapsed} onCollapse={this.onCollapse}>
                     <div className="logo" />
                     <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
@@ -138,20 +177,10 @@ class Addpage extends Component {
                                 </span>
                             }
                         >
-                            <Menu.Item key="3">รอดำเนินการ</Menu.Item>
-                            <Menu.Item key="4">ดำเนินการแล้วเสร็จ</Menu.Item>
+                            <Menu.Item key="3" onClick={this.clickShow}>รอดำเนินการ</Menu.Item>
+                            <Menu.Item key="4">ระหว่างดำเนินการ</Menu.Item>
                         </SubMenu>
-                        <SubMenu
-                            key="sub2"
-                            title={
-                                <span>
-                                    <Icon type="team" />
-                                    <span>Team</span>
-                                </span>
-                            }
-                        >
-                        </SubMenu>
-                        <Menu.Item key="9">
+                        <Menu.Item  key="9" onClick={this.handdleClick}>
                             <Icon type="file" />
                             <span>กลับสู่หน้าหลัก</span>
                         </Menu.Item>
@@ -164,7 +193,7 @@ class Addpage extends Component {
                             
                         </Breadcrumb>
                     
-                        <div style={{ padding: 24, background: '#fff', minHeight: 360 }}><Mytable /></div>
+                        <div style={{ padding: 24, background: '#fff', minHeight: 360 }}><Tableaddpage /></div>
                     </Content>
                     <Footer style={{ textAlign: 'center' }}>Express docoments Tracking</Footer>
                 </Layout>

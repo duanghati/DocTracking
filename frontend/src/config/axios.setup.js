@@ -1,16 +1,20 @@
 import Axios from 'axios';
 
+Axios.defaults.baseURL = 'http://localhost:8081'
+
 const UNPROTECTED_PATHS=[
-    "loginUser"
+    "loginUser",
+    "create-addpage"
 ]
 const isUnprotectedPath = (url)=>{
     for(let path of UNPROTECTED_PATHS){
-        if(url.include(path)){
+        if(url.includes(path)){
             return true
         }
         return false
     }
 }
+
 Axios.interceptors.request.use(
     async config =>{
         if (isUnprotectedPath(config.url)){
